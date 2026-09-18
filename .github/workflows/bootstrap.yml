@@ -1,0 +1,56 @@
+name: YUNA ReplayKit 26.7 bootstrap compile
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compile:
+    runs-on: macos-26
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Expand BuildKit
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf buildkit
+          mkdir buildkit
+          unzip -q YUNA-ReplayKit-267-PUBLIC-COMPILE-ONLY-003.zip -d buildkit
+          test -f buildkit/app/YunaCapture.xcodeproj/project.pbxproj
+          test -f buildkit/ci/build.sh
+
+      - name: Compile host + Broadcast Upload Extension
+        shell: bash
+        run: |
+          set -uo pipefail
+          cd buildkit
+          mkdir -p build
+          xcodebuild -version | tee build/environment.txt
+          xcodebuild -showsdks | tee -a build/environment.txt
+          BUILD_MODE=unsigned bash ci/build.sh 2>&1 | tee build/compile.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -eq 0 ]; then
+            python3 ci/verify_bundle.py \
+              build/DerivedData/Build/Products/Release-iphoneos/YunaCapture.app \
+              | tee build/bundle-report.json
+          fi
+          exit "$status"
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: yuna-replaykit-267-unsigned-diagnostics
+          path: |
+            buildkit/build/environment.txt
+            buildkit/build/compile.log
+            buildkit/build/bundle-report.json
+          retention-days: 1
+          if-no-files-found: warn
