@@ -22,7 +22,7 @@ jobs:
           set -euo pipefail
           rm -rf buildkit
           mkdir buildkit
-          unzip -q YUNA-ScreenCaptureKit-270-PUBLIC-COMPILE-001.zip -d buildkit
+          unzip -q YUNA-ScreenCaptureKit-270-PUBLIC-COMPILE-002.zip -d buildkit
           test -f buildkit/app/YunaCapture.xcodeproj/project.pbxproj
           test -f buildkit/ci/build.sh
 
