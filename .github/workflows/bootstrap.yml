@@ -1,4 +1,4 @@
-name: YUNA ReplayKit 26.7 bootstrap compile
+name: YUNA ScreenCaptureKit 27 compile
 
 on:
   push:
@@ -10,23 +10,23 @@ permissions:
 
 jobs:
   compile:
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@v6
 
-      - name: Expand BuildKit
+      - name: Expand ScreenCaptureKit BuildKit
         shell: bash
         run: |
           set -euo pipefail
           rm -rf buildkit
           mkdir buildkit
-          unzip -q YUNA-ReplayKit-267-PUBLIC-COMPILE-ONLY-003.zip -d buildkit
+          unzip -q YUNA-ScreenCaptureKit-270-PUBLIC-COMPILE-001.zip -d buildkit
           test -f buildkit/app/YunaCapture.xcodeproj/project.pbxproj
           test -f buildkit/ci/build.sh
 
-      - name: Compile host + Broadcast Upload Extension
+      - name: Compile iPadOS 27 ScreenCaptureKit host
         shell: bash
         run: |
           set -uo pipefail
@@ -34,7 +34,7 @@ jobs:
           mkdir -p build
           xcodebuild -version | tee build/environment.txt
           xcodebuild -showsdks | tee -a build/environment.txt
-          BUILD_MODE=unsigned bash ci/build.sh 2>&1 | tee build/compile.log
+          bash ci/build.sh 2>&1 | tee build/compile.log
           status=${PIPESTATUS[0]}
           if [ "$status" -eq 0 ]; then
             python3 ci/verify_bundle.py \
@@ -47,7 +47,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: yuna-replaykit-267-unsigned-diagnostics
+          name: yuna-screencapturekit-270-diagnostics
           path: |
             buildkit/build/environment.txt
             buildkit/build/compile.log
